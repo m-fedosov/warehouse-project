@@ -44,7 +44,7 @@ class AppFixtures extends Fixture
                     $warehouseProduct->setWarehouse($warehouse);
                     $warehouseProduct->setProduct($product);
                     $warehouseProduct->setQuantity($faker->numberBetween(1, 100));
-                    $warehouseProduct->setReservedQuantity($faker->numberBetween(0, 50));
+                    $warehouseProduct->setReservedQuantity($faker->numberBetween(0, $warehouseProduct->getQuantity()));
                     $manager->persist($warehouseProduct);
                 }
             }
