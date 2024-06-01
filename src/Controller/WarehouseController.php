@@ -120,6 +120,10 @@ class WarehouseController extends AbstractController
         response: 400,
         description: 'Not enough quantity of product',
     )]
+    #[OA\Response(
+        response: 200,
+        description: 'Products reserved successfully.',
+    )]
     public function reserveProducts($id, Request $request): JsonResponse
     {
         $warehouse = $this->entityManager->getRepository(Warehouse::class)->find($id);
@@ -196,6 +200,10 @@ class WarehouseController extends AbstractController
     #[OA\Response(
         response: 400,
         description: 'Can\'t unreserved product',
+    )]
+    #[OA\Response(
+        response: 200,
+        description: 'Products unreserved successfully.',
     )]
     public function unreserveProducts($id, Request $request): JsonResponse
     {
