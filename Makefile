@@ -9,7 +9,7 @@ lazy-fix:
 up: setup-docker lazy-fix
 	symfony console make:migration --no-interaction
 	symfony console doctrine:migrations:migrate --no-interaction
-	symfony console doctrine:fixtures:load --no-interaction
+	symfony console doctrine:fixtures:load --no-interaction --group=AppFixtures
 	symfony serve -d
 
 tests: setup-docker lazy-fix
@@ -17,7 +17,7 @@ tests: setup-docker lazy-fix
 	symfony console doctrine:database:create --env=test
 	symfony console make:migration --no-interaction
 	symfony console doctrine:migrations:migrate -n --env=test
-	symfony console doctrine:fixtures:load -n --env=test
-	symfony php bin/phpunit $(MAKECMDGOALS)
+	symfony console doctrine:fixtures:load -n --env=test --group=TestFixtures
+	symfony php bin/phpunit
 
 .PHONY: setup-docker lazy-fix up tests
