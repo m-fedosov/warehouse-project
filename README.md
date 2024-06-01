@@ -13,8 +13,9 @@ This project is a simple warehouse inventory management API built using Symfony 
 ### Installation
 Clone the repository:
 
-`git clone https://github.com/yourusername/warehouse-inventory.git
-cd warehouse-inventory`
+`git clone https://github.com/m-fedosov/warehouse-project.git`
+
+`cd warehouse-project`
 
 Install dependencies:
 
@@ -38,7 +39,7 @@ Build and run Docker containers with app functional tests:
 
 The full list of API endpoints and their details can be viewed in the Swagger UI documentation available at:
 
-`http://localhost:8000/api/doc`
+`https://127.0.0.1:8000/api/doc`
 
 You can easily test all API endpoints using the interactive Swagger UI.
 
