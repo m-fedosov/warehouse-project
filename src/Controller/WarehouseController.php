@@ -8,6 +8,7 @@ use App\Entity\WarehouseProduct;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -66,25 +67,36 @@ class WarehouseController extends AbstractController
     )]
     public function getWarehouseInventory($id): JsonResponse
     {
-        $warehouse = $this->entityManager->getRepository(Warehouse::class)->find($id);
+        $cache = new FilesystemAdapter();
+        $cacheKey = 'warehouse_inventory_' . $id;
 
-        if (!$warehouse) {
-            return new JsonResponse(['error' => 'Warehouse not found'], 404);
+        try {
+            $inventory = $cache->get($cacheKey, function () use ($id) {
+                $warehouse = $this->entityManager->getRepository(Warehouse::class)->find($id);
+
+                if (!$warehouse) {
+                    throw new \Exception('Warehouse not found');
+                }
+
+                $inventory = $this->entityManager->getRepository(WarehouseProduct::class)->findBy(['warehouse' => $id]);
+
+                $response = [];
+                foreach ($inventory as $item) {
+                    $response[] = [
+                        'product_id' => $item->getProduct()->getId(),
+                        'product_name' => $item->getProduct()->getName(),
+                        'quantity' => $item->getQuantity(),
+                        'reserved_quantity' => $item->getReservedQuantity(),
+                    ];
+                }
+
+                return $response;
+            });
+
+            return new JsonResponse($inventory);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 404);
         }
-
-        $inventory = $this->entityManager->getRepository(WarehouseProduct::class)->findBy(['warehouse' => $id]);
-
-        $response = [];
-        foreach ($inventory as $item) {
-            $response[] = [
-                'product_id' => $item->getProduct()->getId(),
-                'product_name' => $item->getProduct()->getName(),
-                'quantity' => $item->getQuantity(),
-                'reserved_quantity' => $item->getReservedQuantity(),
-            ];
-        }
-
-        return new JsonResponse($response);
     }
 
     #[Route('/api/warehouse/{id}/reserve', name: "warehouse_reserve", methods: ['POST'])]
@@ -164,6 +176,10 @@ class WarehouseController extends AbstractController
         }
 
         $this->entityManager->flush();
+
+        $cache = new FilesystemAdapter();
+        $cacheKey = 'warehouse_inventory_' . $id;
+        $cache->deleteItem($cacheKey);
 
         return new JsonResponse(['status' => 'Products reserved successfully']);
     }
@@ -245,6 +261,10 @@ class WarehouseController extends AbstractController
         }
 
         $this->entityManager->flush();
+
+        $cache = new FilesystemAdapter();
+        $cacheKey = 'warehouse_inventory_' . $id;
+        $cache->deleteItem($cacheKey);
 
         return new JsonResponse(['status' => 'Products unreserved successfully']);
     }
